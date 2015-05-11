@@ -1,0 +1,11 @@
+bin/
+target/
+reports/
+*generated*
+.classpath
+.project
+.settings/
+.gradle/
+/build
+logs/
+pwdcontainer.json

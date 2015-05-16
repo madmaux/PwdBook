@@ -21,13 +21,16 @@ import org.apache.logging.log4j.Logger;
 import org.mqu.pwdbook.controller.PwdBookController;
 import org.mqu.pwdbook.dao.PasswordsDao;
 import org.mqu.pwdbook.exceptions.DBExceptions;
+import org.mqu.pwdbook.exceptions.DBExceptions.ControllerCantRemovePasswordException;
+import org.mqu.pwdbook.exceptions.DBExceptions.ControllerCantSaveException;
+import org.mqu.pwdbook.model.Pwd;
 import org.mqu.pwdbook.model.PwdContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class PwdBookContollerImpl implements PwdBookController {
+public class PwdBookControllerImpl implements PwdBookController {
   @Autowired
   private PasswordsDao passwordsDao;
-  private static final Logger logger = LogManager.getLogger(PwdBookContollerImpl.class);
+  private static final Logger logger = LogManager.getLogger(PwdBookControllerImpl.class);
 
   private AtomicBoolean flagError = new AtomicBoolean(false);
 
@@ -73,23 +76,18 @@ public class PwdBookContollerImpl implements PwdBookController {
       SecretKey secretKey = generatekey(key);
       pwdContainer.setName(StringUtils.isEmpty(pwdContainer.getName()) ? "" : encrypt(pwdContainer.getName(), secretKey));
       pwdContainer.setComment(StringUtils.isEmpty(pwdContainer.getComment()) ? "" : encrypt(pwdContainer.getComment(), secretKey));
-      pwdContainer
-          .getPassword()
-          .stream()
-          .filter(
-              (pwd) -> StringUtils.isNotEmpty(pwd.getName()) || StringUtils.isNotEmpty(pwd.getComment()) || StringUtils.isNotEmpty(pwd.getUsr())
-                  || StringUtils.isNotEmpty(pwd.getPassword())).forEach((pwd) -> {
-            try {
-              pwd.setName(StringUtils.isEmpty(pwd.getName()) ? "" : encrypt(pwd.getName(), secretKey));
-              pwd.setUsr(StringUtils.isEmpty(pwd.getUsr()) ? "" : encrypt(pwd.getUsr(), secretKey));
-              pwd.setPassword(StringUtils.isEmpty(pwd.getPassword()) ? "" : encrypt(pwd.getPassword(), secretKey));
-              pwd.setComment(StringUtils.isEmpty(pwd.getComment()) ? "" : encrypt(pwd.getComment(), secretKey));
-            } catch (NoSuchAlgorithmException | IllegalBlockSizeException e) {
-              logger.error("Error while saving for each password", e);
-            } catch (InvalidKeyException | NoSuchPaddingException | BadPaddingException e) {
-              this.flagError.set(true);
-            }
-          });
+      pwdContainer.getPassword().stream().filter((pwd) -> !this.isEmpty(pwd)).forEach((pwd) -> {
+        try {
+          pwd.setName(StringUtils.isEmpty(pwd.getName()) ? "" : encrypt(pwd.getName(), secretKey));
+          pwd.setUsr(StringUtils.isEmpty(pwd.getUsr()) ? "" : encrypt(pwd.getUsr(), secretKey));
+          pwd.setPassword(StringUtils.isEmpty(pwd.getPassword()) ? "" : encrypt(pwd.getPassword(), secretKey));
+          pwd.setComment(StringUtils.isEmpty(pwd.getComment()) ? "" : encrypt(pwd.getComment(), secretKey));
+        } catch (NoSuchAlgorithmException | IllegalBlockSizeException e) {
+          logger.error("Error while saving for each password", e);
+        } catch (InvalidKeyException | NoSuchPaddingException | BadPaddingException e) {
+          this.flagError.set(true);
+        }
+      });
       if (flagError.get()) {
         throw new DBExceptions.ControllerExcpetion();
       }
@@ -103,5 +101,24 @@ public class PwdBookContollerImpl implements PwdBookController {
       this.flagError.set(false);
     }
     return false;
+  }
+
+  @Override
+  public boolean removePassword(PwdContainer pwdContainer, Pwd password, String key) throws ControllerCantRemovePasswordException {
+    Pwd pwd = pwdContainer.getPassword().stream().filter(pw -> pw.getName().equals(password.getName())).findFirst().orElse(null);
+    pwdContainer.getPassword().remove(pwd);
+    boolean result = false;
+    try {
+      this.save(pwdContainer, key);
+      result = true;
+    } catch (ControllerCantSaveException e) {
+      logger.error("Error while performing deletion off a password", e);
+    }
+    return result;
+  }
+
+  private boolean isEmpty(Pwd pwd) {
+    return StringUtils.isEmpty(pwd.getName()) && StringUtils.isEmpty(pwd.getUsr()) && StringUtils.isEmpty(pwd.getPassword())
+        && StringUtils.isEmpty(pwd.getComment());
   }
 }

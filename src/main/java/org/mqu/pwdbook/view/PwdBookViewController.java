@@ -19,11 +19,11 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialogs;
 import org.mqu.pwdbook.controller.PwdBookController;
-import org.mqu.pwdbook.dao.BaseDao;
 import org.mqu.pwdbook.exceptions.DBExceptions;
+import org.mqu.pwdbook.exceptions.DBExceptions.ControllerCantRemovePasswordException;
 import org.mqu.pwdbook.model.Pwd;
 import org.mqu.pwdbook.model.PwdContainer;
-import org.mqu.pwdbook.view.dto.PwdBookViewPasswodsDto;
+import org.mqu.pwdbook.view.dto.PwdBookViewPasswordsDto;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -35,20 +35,20 @@ public class PwdBookViewController implements Initializable {
   @FXML
   private PasswordField pwdfldKey;
   @FXML
-  private TableView<PwdBookViewPasswodsDto> tblPwds;
+  private TableView<PwdBookViewPasswordsDto> tblPwds;
   @FXML
-  private TableColumn<PwdBookViewPasswodsDto, String> clmnName;
+  private TableColumn<PwdBookViewPasswordsDto, String> clmnName;
   @FXML
-  private TableColumn<PwdBookViewPasswodsDto, String> clmnUser;
+  private TableColumn<PwdBookViewPasswordsDto, String> clmnUser;
   @FXML
-  private TableColumn<PwdBookViewPasswodsDto, String> clmnPassword;
+  private TableColumn<PwdBookViewPasswordsDto, String> clmnPassword;
   @FXML
-  private TableColumn<PwdBookViewPasswodsDto, String> clmnComments;
+  private TableColumn<PwdBookViewPasswordsDto, String> clmnComments;
 
   private static final Logger logger = LogManager.getLogger(PwdBookViewController.class);
   private PwdContainer pwdContainer;
   private PwdBookController pwdBookController;
-  private ObservableList<PwdBookViewPasswodsDto> passwords = FXCollections.observableArrayList();
+  private ObservableList<PwdBookViewPasswordsDto> passwords = FXCollections.observableArrayList();
 
   @FXML
   public void btnFindAllClick(ActionEvent event) {
@@ -58,7 +58,7 @@ public class PwdBookViewController implements Initializable {
       this.txtComments.setText(this.pwdContainer.getComment());
       this.passwords.removeAll(this.passwords);
       this.pwdContainer.getPassword().forEach(pwd -> {
-        this.passwords.add(new PwdBookViewPasswodsDto(pwd.getName(), pwd.getComment(), pwd.getUsr(), pwd.getPassword()));
+        this.passwords.add(new PwdBookViewPasswordsDto(pwd.getName(), pwd.getComment(), pwd.getUsr(), pwd.getPassword()));
       });
     } catch (DBExceptions.ControllerInvalidKeyException e) {
       logger.error("Error while getting all passwords", e);
@@ -76,6 +76,7 @@ public class PwdBookViewController implements Initializable {
         this.pwdContainer.getPassword().add(new Pwd(pwd.getName().get(), pwd.getUser().get(), pwd.getPassword().get(), pwd.getComment().get()));
       });
       this.pwdBookController.save(pwdContainer, this.pwdfldKey.getText());
+      this.btnFindAllClick(event);
     } catch (DBExceptions.ControllerCantSaveException e) {
       logger.error("Error while saving passwords", e);
       Action response = Dialogs.create().owner(null).title("Error").message("Error: " + e.getMessage()).showError();
@@ -88,13 +89,20 @@ public class PwdBookViewController implements Initializable {
   }
 
   @FXML
-  public void mnuAddPwdClick() {
-    this.passwords.add(new PwdBookViewPasswodsDto("Change me", "Change me", "Change me", "Change me"));
+  public void mnuAddPwdClick(ActionEvent event) {
+    this.passwords.add(new PwdBookViewPasswordsDto("Change me", "Change me", "Change me", "Change me"));
   }
 
   @FXML
-  public void mnuRemPwdClick() {
-
+  public void mnuRemPwdClick(ActionEvent event) {
+    PwdBookViewPasswordsDto pwdDto = this.tblPwds.getSelectionModel().getSelectedItem();
+    try {
+      this.pwdBookController.removePassword(pwdContainer, new Pwd(pwdDto.getName().get(), pwdDto.getUser().get(), pwdDto.getPassword().get(), pwdDto
+          .getComment().get()), this.pwdfldKey.getText());
+      this.btnFindAllClick(event);
+    } catch (ControllerCantRemovePasswordException e) {
+      logger.error(e);
+    }
   }
 
   @Override

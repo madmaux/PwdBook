@@ -1,4 +1,5 @@
 bin/
+out/
 target/
 reports/
 *generated*
@@ -9,3 +10,8 @@ reports/
 /build
 logs/
 pwdcontainer.json
+*~
+?/
+*.iml
+*.ipr
+*.iws

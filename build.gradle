@@ -1,15 +1,19 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'application'
 
 sourceCompatibility=1.8
 targetCompatibility=1.8
-
 version=1.0
+
+mainClassName='org.mqu.pwdbook.view.PwdBookView'
 
 ext{ log4jVersion = '2.2' }
 jar.manifest{
   attributes 'Implementation-Title':'PwdBook',
-  'Implementation-Version':version
+    'Implementation-Version':version,
+    'Main-Class':'org.mqu.pwdbook.view.PwdBookView'
 }
 
 repositories{ mavenCentral() }
@@ -31,3 +35,10 @@ dependencies{
   compile 'commons-codec:commons-codec:1.10'
   compile 'org.controlsfx:controlsfx:8.20.8'
 }
+
+task cleanExtra (type: Delete){
+    println 'Cleaning json file, logs, bin and out/ folder'
+    delete << 'pwdcontainer.json' << 'out'  << 'logs' << 'bin'
+}
+
+clean.dependsOn(cleanExtra)

@@ -3,17 +3,17 @@ package org.mqu.pwdbook.view.dto;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class PwdBookViewPasswodsDto {
+public class PwdBookViewPasswordsDto {
   private final StringProperty Name;
   private final StringProperty Comment;
   private final StringProperty User;
   private final StringProperty Password;
 
-  public PwdBookViewPasswodsDto() {
+  public PwdBookViewPasswordsDto() {
     this(null, null, null, null);
   }
 
-  public PwdBookViewPasswodsDto(String name, String comment, String user, String password) {
+  public PwdBookViewPasswordsDto(String name, String comment, String user, String password) {
     super();
     this.Name = new SimpleStringProperty(name);
     this.Comment = new SimpleStringProperty(comment);

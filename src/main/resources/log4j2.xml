@@ -14,7 +14,7 @@
 				pattern="%d{yyyy-mm-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 			<Policies>
 				<TimeBasedTriggeringPolicy interval="1" />
-				<SizeBasedTriggeringPolicy size="4KB" />
+				<SizeBasedTriggeringPolicy size="4MB" />
 			</Policies>
 			<DefaultRolloverStrategy max="4" />
 		</RollingFile>

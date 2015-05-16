@@ -50,6 +50,30 @@ public class DBExceptions {
 
   }
 
+  public static class ControllerCantRemovePasswordException extends BaseException {
+    private static final long serialVersionUID = 8634243348772751572L;
+
+    public ControllerCantRemovePasswordException() {
+      super();
+    }
+
+    public ControllerCantRemovePasswordException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+      super(message, cause, enableSuppression, writableStackTrace);
+    }
+
+    public ControllerCantRemovePasswordException(String message, Throwable cause) {
+      super(message, cause);
+    }
+
+    public ControllerCantRemovePasswordException(String message) {
+      super(message);
+    }
+
+    public ControllerCantRemovePasswordException(Throwable cause) {
+      super(cause);
+    }
+  }
+
   public static class ControllerInvalidKeyException extends BaseException {
     private static final long serialVersionUID = 5550350572924549615L;
 

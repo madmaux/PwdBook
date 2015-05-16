@@ -12,5 +12,5 @@
 
 	<bean id="passwordsDao" scope="prototype" class="org.mqu.pwdbook.dao.impl.PasswordsDaoImpl" />
 
-	<bean id="pwdBookController" scope="prototype" class="org.mqu.pwdbook.controller.impl.PwdBookContollerImpl" />
+	<bean id="pwdBookController" scope="prototype" class="org.mqu.pwdbook.controller.impl.PwdBookControllerImpl" />
 </beans>

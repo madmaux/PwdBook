@@ -1,6 +1,7 @@
 package org.mqu.pwdbook.view;
 
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javafx.collections.FXCollections;
@@ -24,10 +25,13 @@ import org.mqu.pwdbook.exceptions.DBExceptions.ControllerCantRemovePasswordExcep
 import org.mqu.pwdbook.model.Pwd;
 import org.mqu.pwdbook.model.PwdContainer;
 import org.mqu.pwdbook.view.dto.PwdBookViewPasswordsDto;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class PwdBookViewController implements Initializable {
+  @Autowired
+  private PwdBookController pwdBookController;
   @FXML
   private TextField txtName;
   @FXML
@@ -47,13 +51,14 @@ public class PwdBookViewController implements Initializable {
 
   private static final Logger logger = LogManager.getLogger(PwdBookViewController.class);
   private PwdContainer pwdContainer;
-  private PwdBookController pwdBookController;
   private ObservableList<PwdBookViewPasswordsDto> passwords = FXCollections.observableArrayList();
 
   @FXML
   public void btnFindAllClick(ActionEvent event) {
     try {
-      this.pwdContainer = this.pwdBookController.load(this.pwdfldKey.getText());
+      Optional<PwdContainer> res = this.pwdBookController.load(this.pwdfldKey.getText());
+      if (res.isPresent())
+        this.pwdContainer = res.get();
       this.txtName.setText(this.pwdContainer.getName());
       this.txtComments.setText(this.pwdContainer.getComment());
       this.passwords.removeAll(this.passwords);
@@ -107,9 +112,9 @@ public class PwdBookViewController implements Initializable {
 
   @Override
   public void initialize(URL location, ResourceBundle resources) {
-    try (AbstractApplicationContext contxt = new ClassPathXmlApplicationContext("META-INF/Beans-Config.xml");) {
-      this.pwdBookController = (PwdBookController) contxt.getBean("pwdBookController");
-    }
+    //try (AbstractApplicationContext contxt = new ClassPathXmlApplicationContext("META-INF/Beans-Config.xml");) {
+    //  this.pwdBookController = (PwdBookController) contxt.getBean("pwdBookController");
+    //}
     this.clmnName.setCellFactory(TextFieldTableCell.forTableColumn());
     this.clmnName.setCellValueFactory(it -> it.getValue().getName());
     this.clmnUser.setCellFactory(TextFieldTableCell.forTableColumn());

@@ -1,9 +1,10 @@
 package org.mqu.pwdbook.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-public class PwdContainer implements Serializable {
+public final class PwdContainer implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -19,7 +20,13 @@ public class PwdContainer implements Serializable {
     super();
     Name = name;
     Comment = comment;
-    Passwords = passwords;
+    //Passwords = passwords;
+    Passwords = new ArrayList<>();
+    passwords.forEach(pwd-> Passwords.add(new Pwd(pwd)));
+  }
+
+  public PwdContainer(PwdContainer aPwdContainer) {
+    this(aPwdContainer.getName(), aPwdContainer.getComment(), aPwdContainer.getPassword());
   }
 
   public String getName() {

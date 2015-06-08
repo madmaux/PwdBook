@@ -13,7 +13,10 @@ import org.mqu.pwdbook.model.Pwd;
 import org.mqu.pwdbook.model.PwdContainer;
 
 import com.google.gson.Gson;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
 
+@Component("passwordsDao")
 public class PasswordsDaoImpl extends BaseDao implements PasswordsDao {
   private static final Logger logger = LogManager.getLogger(PasswordsDaoImpl.class);
 
@@ -33,6 +36,7 @@ public class PasswordsDaoImpl extends BaseDao implements PasswordsDao {
   }
 
   @Override
+  @Cacheable("pwdContainerCache")
   public PwdContainer findAll() throws DBExceptions.DAOObjectNotFoundException {
     logger.info("Finding all objects");
     try (BufferedReader openedFile = this.open()) {

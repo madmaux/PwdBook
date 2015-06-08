@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.crypto.BadPaddingException;
@@ -26,19 +27,21 @@ import org.mqu.pwdbook.exceptions.DBExceptions.ControllerCantSaveException;
 import org.mqu.pwdbook.model.Pwd;
 import org.mqu.pwdbook.model.PwdContainer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 public class PwdBookControllerImpl implements PwdBookController {
   @Autowired
+  @Qualifier("passwordsDao")
   private PasswordsDao passwordsDao;
   private static final Logger logger = LogManager.getLogger(PwdBookControllerImpl.class);
 
   private AtomicBoolean flagError = new AtomicBoolean(false);
 
   @Override
-  public PwdContainer load(String key) throws DBExceptions.ControllerInvalidKeyException {
+  public Optional<PwdContainer> load(String key) throws DBExceptions.ControllerInvalidKeyException {
     try {
-      PwdContainer pwdContainer = new PwdContainer();
-      pwdContainer = passwordsDao.findAll();
+      PwdContainer orgPwdContainer = passwordsDao.findAll();
+      PwdContainer pwdContainer = new PwdContainer(orgPwdContainer);
       SecretKey secretKey = generatekey(key);
       pwdContainer.setName(decrypt(pwdContainer.getName(), secretKey));
       pwdContainer.setComment(decrypt(pwdContainer.getComment(), secretKey));
@@ -57,7 +60,7 @@ public class PwdBookControllerImpl implements PwdBookController {
       if (flagError.get()) {
         throw new DBExceptions.ControllerExcpetion();
       }
-      return pwdContainer;
+      return Optional.of(pwdContainer);
     } catch (DBExceptions.DAOObjectNotFoundException | UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeySpecException
         | IllegalBlockSizeException e) {
       logger.error("Error while loading", e);
@@ -66,7 +69,7 @@ public class PwdBookControllerImpl implements PwdBookController {
     } finally {
       this.flagError.set(false);
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override
@@ -88,12 +91,17 @@ public class PwdBookControllerImpl implements PwdBookController {
           this.flagError.set(true);
         }
       });
+      PwdContainer orgPwdContainer = passwordsDao.findAll();
+      orgPwdContainer.setComment(pwdContainer.getComment());
+      orgPwdContainer.setName(pwdContainer.getName());
+      orgPwdContainer.getPassword().clear();
+      pwdContainer.getPassword().forEach(pwd-> orgPwdContainer.getPassword().add(pwd));
       if (flagError.get()) {
         throw new DBExceptions.ControllerExcpetion();
       }
-      result = passwordsDao.save(pwdContainer);
+      result = passwordsDao.save(orgPwdContainer);
       return result;
-    } catch (DBExceptions.DAOObjectNotSaved | UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeySpecException | IllegalBlockSizeException e) {
+    } catch (DBExceptions.DAOObjectNotFoundException |DBExceptions.DAOObjectNotSaved | UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeySpecException | IllegalBlockSizeException e) {
       logger.error("Error while saving", e);
     } catch (DBExceptions.ControllerExcpetion | InvalidKeyException | NoSuchPaddingException | BadPaddingException e) {
       throw new DBExceptions.ControllerCantSaveException("The key entered is invalid", e);

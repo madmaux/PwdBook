@@ -2,7 +2,7 @@ package org.mqu.pwdbook.model;
 
 import java.io.Serializable;
 
-public class Pwd implements Serializable {
+public final class Pwd implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -21,6 +21,10 @@ public class Pwd implements Serializable {
     Usr = usr;
     Pwd = password;
     Comment = comment;
+  }
+
+  public Pwd(Pwd aPwd){
+    this(aPwd.getName(), aPwd.getUsr(), aPwd.getPassword(), aPwd.getComment());
   }
 
   public String getName() {

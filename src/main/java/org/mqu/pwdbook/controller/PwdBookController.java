@@ -4,8 +4,10 @@ import org.mqu.pwdbook.exceptions.DBExceptions;
 import org.mqu.pwdbook.model.Pwd;
 import org.mqu.pwdbook.model.PwdContainer;
 
+import java.util.Optional;
+
 public interface PwdBookController {
-  public PwdContainer load(String key) throws DBExceptions.ControllerInvalidKeyException;
+  public Optional<PwdContainer> load(String key) throws DBExceptions.ControllerInvalidKeyException;
 
   public boolean save(PwdContainer pwdContainer, String key) throws DBExceptions.ControllerCantSaveException;
 

@@ -3,6 +3,7 @@ package org.mqu.pwdbook.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class PwdContainer implements Serializable {
 
@@ -20,9 +21,7 @@ public final class PwdContainer implements Serializable {
     super();
     Name = name;
     Comment = comment;
-    //Passwords = passwords;
-    Passwords = new ArrayList<>();
-    passwords.forEach(pwd-> Passwords.add(new Pwd(pwd)));
+    Passwords = passwords.stream().collect(Collectors.toList());
   }
 
   public PwdContainer(PwdContainer aPwdContainer) {
